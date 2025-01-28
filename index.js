@@ -39,7 +39,7 @@ app.use(cors());
 app.use(morgan("dev"));
 
 // MongoDB connection
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/adminDB";
+const MONGO_URI = process.env.MONGO_URI ||"mongodb+srv://gm4175urjitupadhyay:<URJIT2024u>@gdgcamuapp.gcluk.mongodb.net/GDGCAMUAPP?retryWrites=true&w=majority";
 mongoose
   .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("MongoDB connected successfully"))
