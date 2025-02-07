@@ -5,63 +5,100 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import morgan from "morgan";
 import passport from "passport";
-import session from "express-session";  // Import express-session
-import googleAuth from "./middleware/googleAuth.js"; // Path to Google Auth middleware
-import { facebookAuth } from "./middleware/facebookAuth.js"; // Corrected import
-import twitterAuth from "./middleware/twitterAuth.js"; // Import Twitter Auth middleware
-
-import AuthRoutes from "./routes/AuthRoutes.js"; // Correct import for Auth routes
-import AdminRoutes from "./routes/AdminRoutes.js"; // Admin routes if any
+import session from "express-session";
+import MongoStore from "connect-mongo";
+import googleAuth from "./middleware/googleAuth.js";
+import { facebookAuth } from "./middleware/facebookAuth.js";
+import twitterAuth from "./middleware/twitterAuth.js";
+import AuthRoutes from "./routes/AuthRoutes.js";
+import AdminRoutes from "./routes/AdminRoutes.js";
 
 dotenv.config(); // Load environment variables
 
 const app = express();
 
-// Configure session support for Passport
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-session-secret',  // Set a session secret
-  resave: false,  // Do not force the session to be saved back to the store
-  saveUninitialized: true,  // Save uninitialized sessions
-  cookie: { secure: false }  // Set 'true' for HTTPS in production, 'false' for development
-}));
+// ✅ Verify environment variables
+console.log("\x1b[36m%s\x1b[0m", "🟢 Loaded ENV Variables:");
+console.log("MONGO_URI:", process.env.MONGO_URI ? "✅ Loaded" : "❌ Not Loaded");
+console.log("SESSION_SECRET:", process.env.SESSION_SECRET || "❌ Not Loaded");
 
-// Google and Facebook Authentication middleware initialization
-googleAuth(); // Initialize Google OAuth strategy
-facebookAuth(); // Initialize Facebook OAuth strategy
-twitterAuth(); // Initialize Twitter OAuth strategy
-app.use(passport.initialize()); // Initialize Passport middleware
-app.use(passport.session());  // Initialize Passport session support
+// ✅ Ensure MONGO_URI is present
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error("❌ ERROR: Missing MONGO_URI in .env file");
+  process.exit(1);
+}
 
-// Middlewares
+// ✅ Secure session settings (Using MongoDB session storage)
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-session-secret",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: MONGO_URI,
+      collectionName: "sessions",
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "strict",
+    },
+  })
+);
+
+// ✅ Initialize authentication strategies
+googleAuth();
+facebookAuth();
+twitterAuth();
+app.use(passport.initialize());
+app.use(passport.session());
+
+// ✅ Middlewares
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+
+// ✅ Improved CORS settings (Restrict to trusted origins)
+const allowedOrigins = ["http://localhost:3000", "https://yourdomain.com"];
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true, // Allow cookies & headers
+  })
+);
 app.use(morgan("dev"));
 
-// MongoDB connection
-const MONGO_URI = process.env.MONGO_URI ||"mongodb+srv://gm4175urjitupadhyay:<URJIT2024u>@gdgcamuapp.gcluk.mongodb.net/GDGCAMUAPP?retryWrites=true&w=majority";
+// ✅ MongoDB Connection (Fixed warning)
 mongoose
-  .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .connect(MONGO_URI)
+  .then(() => console.log("\x1b[32m%s\x1b[0m", "✅ MongoDB connected successfully"))
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });
 
-// Routes
-app.use("/api/admin", AdminRoutes);  // Admin routes if any
-app.use("/api/auth", AuthRoutes);    // Authentication routes
+// ✅ Default route to prevent 404 errors on `/`
+app.get("/", (req, res) => {
+  res.send("🚀 Welcome to the Admin API!");
+});
 
-// 404 handler
+// ✅ Routes
+app.use("/api/admin", AdminRoutes);
+app.use("/api/auth", AuthRoutes);
+
+// ✅ 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Error handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Internal server error" });
 });
 
-// Start the server
+// ✅ Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log("\x1b[36m%s\x1b[0m", `🚀 Server running on http://localhost:${PORT}`);
 });
