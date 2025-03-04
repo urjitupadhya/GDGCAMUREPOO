@@ -13,7 +13,7 @@ import twitterAuth from "./middleware/twitterAuth.js";
 import AuthRoutes from "./routes/AuthRoutes.js";
 import AdminRoutes from "./routes/AdminRoutes.js";
 
-dotenv.config(); // Load environment variables
+dotenv.config();
 
 const app = express();
 

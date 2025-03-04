@@ -3,8 +3,15 @@ import { CheckUser, Login, Logout, register } from '../controllers/Auth.js';
 import { IsUser } from '../middleware/verifyToken.js';
 import passport from 'passport';
 import jwt from 'jsonwebtoken'; // Import jwt for signing the token
+// Request OTP route
+import { requestOtp } from '../controllers/Auth.js';
+import { requestPasswordResetOtp, resetPassword } from '../controllers/Auth.js';
 
 const AuthRoutes = express.Router();
+// Forgot password routes
+AuthRoutes.post('/forgot-password', requestPasswordResetOtp); // Send OTP for reset
+AuthRoutes.post('/reset-password', resetPassword);
+AuthRoutes.post('/request-otp', requestOtp);
 
 // Register route
 AuthRoutes.post('/register', register);
