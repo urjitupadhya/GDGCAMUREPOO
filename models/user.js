@@ -29,10 +29,36 @@ const userSchema = new mongoose.Schema(
       type: String, // Optional: Store profile picture URL
       default: "",
     },
+    points: {
+      type: Number,
+      default: 100, // Initial points awarded upon registration
+    },
+    level: {
+      type: String,
+      default: "Newbie", // Initial level based on points
+    },
+    badges: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Badge", // Reference to the Badge model
+      },
+    ],
+    registered_events: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Event", // Reference to the Event model for registered events
+      },
+    ],
+    attended_events: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Event", // Reference to the Event model for attended events
+      },
+    ],
   },
   { timestamps: true }
 );
 
-const UserModel = mongoose.model("users", userSchema);
+const UserModel = mongoose.model("User", userSchema);
 
 export default UserModel;

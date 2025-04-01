@@ -40,7 +40,7 @@ const sendOtp = async (email) => {
 
 const register = async (req, res) => {
     try {
-        const { name, email, password, otp } = req.body;
+        const { name, email, password, otp,points } = req.body;
 
         const existUser = await UserModel.findOne({ email });
         if (existUser) {
@@ -179,4 +179,24 @@ const resetPassword = async (req, res) => {
     }
 };
 
-export { requestPasswordResetOtp, resetPassword ,register, Login, Logout, CheckUser, requestOtp };
+// Adjust a user's points
+const adjustUserPoints = async (req, res) => {
+    try {
+      const { userId, points } = req.body;
+  
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      user.points += points;
+      await user.save();
+  
+      res.status(200).json({ message: "User points updated successfully", user });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+      console.log(error);
+    }
+  };
+  
+export { requestPasswordResetOtp, resetPassword ,register, Login, Logout, CheckUser, requestOtp,adjustUserPoints };
